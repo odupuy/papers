@@ -1,0 +1,505 @@
+MAVEN PRESENTATION
+2014/11/07
+Sherban Popescu and Olivier Dupuy
+
+*********************************** SHERBAN *************************************
+
+*************** archetype demo command line to create a jar project
+
+mdt = mvn dependency:tree
+mci = mvn clean install
+meed = mvn eclipse:eclipse...
+
+USE MAVEN 3.0.4 as the site command creates problems in 3.2.X for some reason
+
+Testing that Maven is installed 
+> echo %M2_HOME%
+>mvn -version
+
+Work in <WORKSPACE>/mavendemo
+
+Interactive creation
+
+>mvn archetype:generate
+=> long list of archetypes/templates
+https://maven.apache.org/guides/introduction/introduction-to-archetypes.html
+=> pick the default 497 which is maven-archetype-quickstart
+=> pick the version 6 = 1.1
+=> pick a groupId e.g. com.telushealth.mavendemo
+=> pick an artifactId e.g. mavenjar
+=> pick a version e.g. 1.0-SNAPSHOT (snapshot means "trunk/head/non-released" in Maven lingo)
+=> pick a package, likely the same as the groupId but add a level to it e.g. com.telushealth.mavendemo.mvnjar
+- approve the above choices (Y)
+
+Not interactive creation, this is equivalent
+>mvn archetype:generate -DgroupId=com.telushealth.mavendemo -DartifactId=mavenjar -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+
+[-Dxxx=yyy is a defined property like in java]
+
+*************** show standard maven directory layout
+
+Look now at the created folder and its content:
+- pom.xml
+- source folder
+-- code 
+-- test
+
+Directory Layout
+https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html
+https://maven.apache.org/guides/getting-started/maven-in-five-minutes.htmldirectory-layout.html
+
+*************** show basic and effective POM
+
+Show the simple pom.xml content
+
+Show all the inherited content
+>mvn help:effective-pom
+
+The effective-pom goal is used to make visible the POM that results from the application of interpolation, inheritance and active profiles.
+It provides a useful way of removing the guesswork about just what ends up in the POM that Maven uses to build your project.
+It will iterate over all projects in the current build session, printing the effective POM for each.
+
+All the default/inherited values can be overriden if needed but they are typically OK.
+Why to change:
+- non standard default folders
+- special compilation options
+
+The standard directory layout and the inheritance are part of the maven framework great benefits.
+
+*********************************** SHERBAN *************************************
+
+Edit App.java
+- add a constructor
+    public App() {
+    	System.out.println( "In the constructor" );
+    }
+- add a method
+   public String sayHello(String name) {
+   	return "Hello " + name;
+   }
+    
+Edit AppTest.java
+- add new App(); in testApp()
+
+*************** Compile the project
+
+>mvn compiler:compile
+
+Show that goals are case sensitive
+>mvn compiler:testcompile => FAILS
+>mvn compiler:testCompile
+
+*************** Run the unit tests
+
+> surefire:test
+
+*************** Add/Change dependencies
+
+<!-- logging -->
+<dependency>
+	<groupId>log4j</groupId>
+	<artifactId>log4j</artifactId>
+	<version>1.2.17</version>
+</dependency>
+			
+<!-- test -->
+<dependency>
+	<groupId>junit</groupId>
+	<artifactId>junit</artifactId>
+	<version>4.11</version>
+</dependency>
+
+Use a property ${org.junit.version}
+<properties>
+	<org.junit.version>4.11</org.junit.version>
+</properties>
+       
+    
+Edit App.java
+import org.apache.log4j.Logger;
+
+static Logger logger = Logger.getLogger(App.class);
+
+logger.error("This is an error");
+logger.error("This is a warn");
+logger.error("This is an info");
+logger.error("This is an debug");
+
+
+recompile and run the tests
+
+add a resource file
+- log4j.properties
+log4j.rootLogger=debug, console
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.target=System.out
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d{HH:mm:ss,SSS} %5p [%t] (%F:%L) - %m%n
+
+- show that it is copied in target/classes
+- same behavior for an XML file if present
+
+
+*************** Package the project
+
+>mvn jar:jar
+
+Look at the manifest file in the JAR.
+Show that it contains classes and resources.
+We could also sign the JAR file with some extra configuration.
+
+Clean the project
+>mvn clean
+
+Put the above tasks all together
+>mvn compiler:compile compiler:testCompile surefire:test jar:jar
+or simply
+>mvn install  (show that we have more goal coming used)
+or better coupled with a full rebuild
+>mvn clean install
+
+Show the target folder and the created files
+
+Other things that maven could do 		:
+- archive of the code
+- archive of the test code
+- javadoc and archive it
+
+
+*************** Show the Eclipse support for Maven
+
+Either 
+>mvn eclipse:eclipse dependency:sources dependency:resolve -Dclassifier=javadoc
+(mention that there is some deterministic choice of the JRE here but this can be fixed)
+Show here the use of command shortcuts (meed)
+or
+import directly the maven project in Eclipse
+
+- Show the layout
+- Show that the libraries come with source and doc
+- Show that the source and test are compiled to different folders
+- Show that the target folder is automatically "derived" speeding-up the searches
+
+Clean the project in Eclipse.
+Add the Maven runtime in the maven preferences.
+Run a test in Eclipse.
+Do an "install" from Eclipse creating a run configuration
+- Show the Maven version used by the configuration. Beware of not using the version coming with Eclipse (same as for ANt) but the official version of the product that you build.
+Run a "test" from Eclipse
+- Show that less goals are called like not jar:jar
+
+
+*********************************** SHERBAN *************************************
+
+*************** Local repository follow up
+
+Show the automatic downloads from the internet
+- remove the log4j and junit packages
+- rebuild
+
+The downloads could be done from a local Telus repository if wished to control more what is done.
+You can also work "off-line" if you wish like in a daily build for OSI.
+
+*************** Show the transitive dependencies in POM file
+
+>mvn dependency:tree
+
+Show that Junit depends on Hamcrest
+Show how the dependey is different if we go back to Junit 3.8.1
+
+Where is it defined?
+C:\Users\T882804\.m2\repository\junit\junit\4.11\junit-4.11.pom 
+
+ *************** Create a parent project
+ 
+ from >WORKSPACE>
+ 
+ >mvn archetype:generate -DarchetypeGroupId=org.codehaus.mojo.archetypes -DarchetypeArtifactId=pom-root -DarchetypeVersion=RELEASE -DgroupId=com.telushealth.mavendemo -DartifactId=mavendemo
+ >accept 1.0-SNAPSHOT for the version
+ validate the above choices
+ 
+ >cd mavendemo
+ >mdt
+ >mci
+ 
+ *************** Make the existing project a module
+ 
+ >edit pom.xml and add
+     <modules>
+   	<module>mavenjar</module>
+     </modules>
+>mdt
+>mci
+
+*************** recreate a war project as a module
+
+To illustrate the automatic download of plugins, delete in the repo org/apache/maven/archetypes/maven-archetype-webapp
+
+>mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-webapp -DarchetypeVersion=RELEASE -DgroupId=com.telushealth.mavendemo -DartifactId=mavenwar
+ 
+ >cd mavenwar
+ >mdt
+ >mci
+ >cd ..
+ 
+ >edit pom.xml and add
+     <modules>
+   	<module>mavenwar</module>
+     </modules>
+>mdt
+>mci
+ 
+ *************** Make JAR a dependency of WAR
+ 
+ >edit mavenwar/pom.xml and add
+     <dependency>
+          <groupId>com.telushealth.mavendemo</groupId>
+          <artifactId>mavenjar</artifactId>
+          <version>1.0-SNAPSHOT</version>
+      </dependency>
+ >mdt
+ >mci
+ 
+ Notice the different Junit versions in JAR and WAR.
+ 
+ Show the WAR file and the exploded folder to show the libraries present in WEB-INF/lib
+ - manifest 
+ - classes
+ - lib folder
+ 
+***************  BOM for libraries
+
+mdt
+
+Problems:
+1) conflicting Junit versions
+=> 
+edit mavenwar/pom.xml
+Use a property ${org.junit.version}
+     <properties>
+       	<org.junit.version>4.11</org.junit.version>
+     </properties>
+
+2) duplication of some information such as the Junit versions
+3) DEO depends on WAR and JAR. WAR depends on JAR but nothing really links JAR and WAR to DEMO.
+=> make the demo project the parent of JAR and WAR
+
+edit mavenjar/pom.xml and add
+  <parent>
+    <groupId>com.telushealth.mavendemo</groupId>
+    <artifactId>mavendemo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+ 
+>mci
+>mdt
+ 
+ 
+ edit mavenjar/pom.xml and add some common properties
+	<properties>
+		<project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+		<project.build.resourceEncoding>ISO-8859-1</project.build.resourceEncoding>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<timestamp>${maven.build.timestamp}</timestamp>
+	</properties>
+ 
+ 
+ Now we can move the duplicated property in the demo project and remove it from the 2 modules
+>mci
+>mdt
+Notice how WAR depends on Log4J inherited from JAR. 
+Notice how WAR depends directly on Junit, the inherited dependency from JAR is not shown. Direct dependencies have priority over inherited, 2ns versus 3rd etc.
+ 
+Now define a "bill of material" by defining default plug-in versions or configuration in the parent file instead or library versions
+
+Edit mavendemo/pom.xml
+
+	<properties>
+		<org.junit.version>4.11</org.junit.version>
+		<org.log4j.version>1.2.17</org.log4j.version>
+	</properties>
+
+	<!-- this is our "maven bill of materials" -->
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- logging -->
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>${org.apache.log4j.version}</version>
+			</dependency>
+
+			<!-- test -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${org.junit.version}</version>
+				<scope>test</scope>
+				
+				<!-- here we could define extra or unwanted dependencies -->
+			</dependency>
+	</dependencyManagement>
+	
+Clean the dependency section of mavenjar/pom.xml and mavenwar.xml
+	
+>mci
+>mdt
+
+Show an example of BOM file with Spring
+http://mvnrepository.com/artifact/org.springframework/spring-framework-bom
+
+A BOM can be used for your "stack" with plugins, libraries, properties, profiles e.g.
+J2EE 6 = Servlet 3.0 + JSP 2.2 + ... => define a POM file for this version and for other ones
+Pasteur = Tomcat 7.0.55 + JDK 1.7.0_60 + J2EE6 + DashoPro 6.12.0 + etc.
+
+*************** Show bad dependencies
+
+Add a dependency to
+
+<dependency>
+	<groupId>org.easymock</groupId>
+	<artifactId>easymock</artifactId>
+	<version>3.2</version>
+</dependency>
+
+Remove the junit dependency.
+
+Everything runs fine but mvn dependency:analyze will show extra (easymock) and missing (junit).
+Explain how the dependencies are found.
+
+Put log4j in the WAR project but with a version different from 1.2.17 e.g. 1.2.16
+
+Show the dependencies for the WAR project (mdt)
+- full tree
+- displayed tree
+
+Explain the differences: 
+- junit choice (test scope) is not inherited
+- some dependencies are inherited (compile/runtime/provided) and some are not (test)
+- log1.2.16 is shown (direct dependency) instead of the transitive dependency 1.2.17
+
+Add a provided dependency e.g. servlet
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+			<version>3.0.1</version>
+		</dependency>
+		
+- a line of code using it
+
+<%@page import="com.telushealth.mavendemo.mvnjar.App"%>
+<html>
+<body>
+	<h2>Hello World!</h2>
+	<%=new App().toString()%>
+</body>
+</html>
+
+package com.telushealth.mavendemo.mvnwar;
+import javax.servlet.http.HttpServletRequest;
+/**
+ * @author odupuy
+ * 
+ */
+public class ServletUse {
+	/**
+	 * Constructor.
+	 * 
+	 */
+	public ServletUse() {
+		HttpServletRequest myServlet = null;
+	}
+}
+
+- mdt
+- mci
+
+Show that the servlet JAR is not in WEB-INF/lib but that it is available to compile and run as mdt shows it
+
+*************** Show the site documentation creation
+
+add in the WAR project
+- developers
+- description
+- project summary
+- SCCS
+- license
+- issue tracking
+- mailing list
+
+	<description>This is the demonstration of maven.</description>
+	<organization>
+		<name>TELUS HEALTH</name>
+		<url>http://www.telushealth.com/</url>
+	</organization>
+	<issueManagement>
+		<system>Bugzilla</system>
+		<url>http://bugzilla/</url>
+	</issueManagement>
+	<mailingLists>
+		<mailingList>
+			<name>MavenDemoMailingList</name>
+			<subscribe>http://subscribe.here.com</subscribe>
+			<archive>http://archive.here.com</archive>
+		</mailingList>
+	</mailingLists>
+	<contributors>
+		<contributor>
+			<name>Olivier Dupuy</name>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Sherban Popescu</name>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</contributor>
+	</contributors>
+	<scm>
+		<url>svn://cerveza/OSIPlatform</url>
+	</scm>
+		<!-- <licenses> <license> <name>My License</name> <url>http://apache.org</url> 
+		</license> </licenses> -->
+
+
+>mvn site in war
+
+Open in the browser target/site/index.html
+- show the different tabs
+- show the dependencies tab at the end and licenses
+
+*************** Example of a profile quicking in automatically if the OS is a Unix flavor
+
+	<profiles>
+		<profile>
+			<id>Unix</id>
+			<activation>
+				<os>
+					<family>unix</family>
+				</os>
+			</activation>
+			<properties>
+				<!-- absolute folder where is the top OSI project -->
+				<com.oacis.osi.folder>${osiFolder}</com.oacis.osi.folder>
+				<!-- the Ant command -->
+				<ant.command>ant</ant.command>
+				<!-- we know that ANT_HOME is already set to the right version -->
+				<ant.home>${env.ANT_HOME}</ant.home>
+				<!-- we know that JAVA_HOME is already set to the right version -->
+				<project.java.home>${env.JAVA_HOME}</project.java.home>
+				<!-- assumes the variable being already defined -->
+				<com.preemptive.dasho.home>${env.DASHO_HOME}</com.preemptive.dasho.home>
+				<!-- folder containing the things shared from Oacis -->
+				<com.oacis.platform.supportFolder>${oacisSupportFolder}</com.oacis.platform.supportFolder>
+				<!-- folder containing the extra Ant tasks -->
+				<com.oacis.platform.utilFolder>${com.oacis.platform.supportFolder}/util</com.oacis.platform.utilFolder>
+			</properties>
+		</profile>
+
+	</profiles>
+	
+*********************************** SHERBAN *************************************
