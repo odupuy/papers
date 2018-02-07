@@ -7,3 +7,4 @@ Some Ottawa user groups of interest I belong to
 - [DevOps](https://www.meetup.com/DevOps-Ottawa/)
 - [Kubernetes and cloud native](https://www.meetup.com/Kubernetes-Ottawa/)
 - [.net](https://www.meetup.com/ottawaitcommunity/)
+- [AWS](https://www.meetup.com/Ottawa-AWS-User-Group/)
